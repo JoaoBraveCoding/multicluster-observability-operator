@@ -443,14 +443,186 @@ type StorageConfig struct {
 	StoreStorageSize string `json:"storeStorageSize,omitempty"`
 }
 
+// MultiClusterObservabilityConditionType deifnes the type of condition types of a MultiClusterObservability deployment.
+type MultiClusterObservabilityConditionType string
+
+const (
+	// ConditionReady defines the condition that all components in the MultiClusterObservability deployment are ready.
+	ConditionReady MultiClusterObservabilityConditionType = "Ready"
+
+	// ConditionPending defines the condition that some or all components are in pending state.
+	ConditionPending MultiClusterObservabilityConditionType = "Pending"
+
+	// ConditionFailed defines the condition that components in the MultiClusterObservability deployment failed to roll out.
+	ConditionFailed MultiClusterObservabilityConditionType = "Failed"
+
+	// ConditionDegraded defines the condition that some or all components in the MultiClusterObservability deployment
+	// are degraded or the cluster cannot connect to object storage.
+	ConditionDegraded MultiClusterObservabilityConditionType = "Degraded"
+
+	// ConditionWarning is used for configurations that are not recommended, but don't currently cause
+	// issues. There can be multiple warning conditions active at a time.
+	ConditionWarning MultiClusterObservabilityConditionType = "Warning"
+)
+
+// MultiClusterObservabilityConditionReason defines the type for valid reasons of a MultiClusterObservability deployment conditions.
+type MultiClusterObservabilityConditionReason string
+
+const (
+	// ReasonFailedComponents when all/some MultiClusterObservability components fail to roll out.
+	ReasonFailedComponents MultiClusterObservabilityConditionReason = "FailedComponents"
+	// ReasonPendingComponents when all/some MultiClusterObservability components pending dependencies
+	ReasonPendingComponents MultiClusterObservabilityConditionReason = "PendingComponents"
+	// ReasonReadyComponents when all MultiClusterObservability components are ready to serve traffic.
+	ReasonReadyComponents MultiClusterObservabilityConditionReason = "ReadyComponents"
+	// ReasonMissingObjectStorageSecret when the required secret to store metrics to object
+	// storage is missing.
+	ReasonMissingObjectStorageSecret MultiClusterObservabilityConditionReason = "MissingObjectStorageSecret"
+	// ReasonInvalidObjectStorageSecret when the format of the secret is invalid.
+	ReasonInvalidObjectStorageSecret MultiClusterObservabilityConditionReason = "InvalidObjectStorageSecret"
+	// ReasonMetricsDisabled when the user has disabled the metrics addon
+	ReasonMetricsDisabled MultiClusterObservabilityConditionReason = "MetricsDisabled"
+	// ReasonMCOAMissingCRDs to use the MCOA addon the CRDs used by MCOA need to be installed
+	ReasonMCOAMissingCRDs MultiClusterObservabilityConditionReason = "MissingCRDsMultiClusterObservabilityAddon"
+)
+
+// PodStatus is a short description of the status a Pod can be in.
+type PodStatus string
+
+const (
+	// PodPending means the pod has been accepted by the system, but one or more of the containers
+	// has not been started. This includes time before being bound to a node, as well as time spent
+	// pulling images onto the host.
+	PodPending PodStatus = "Pending"
+	// PodRunning means the pod has been bound to a node and all of the containers have been started.
+	// At least one container is still running or is in the process of being restarted.
+	PodRunning PodStatus = "Running"
+	// PodReady means the pod has been started and the readiness probe reports a successful status.
+	PodReady PodStatus = "Ready"
+	// PodFailed means that all containers in the pod have terminated, and at least one container has
+	// terminated in a failure (exited with a non-zero exit code or was stopped by the system).
+	PodFailed PodStatus = "Failed"
+	// PodStatusUnknown is used when none of the other statuses apply or the information is not ready yet.
+	PodStatusUnknown PodStatus = "Unknown"
+)
+
+// PodStatusMap defines the type for mapping pod status to pod name.
+type PodStatusMap map[PodStatus][]string
+
+// MultiClusterObservabilityComponentStatus defines the map of per pod status per MultiClusterObservability component.
+// Each component is represented by a separate map of v1.Phase to a list of pods.
+type MultiClusterObservabilityComponentStatus struct {
+	// Grafana is a map to the pod status of the grafana pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="Grafana"
+	Grafana PodStatusMap `json:"grafana,omitempty"`
+
+	// ObservatoriumAPI is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ObservatoriumAPI"
+	ObservatoriumAPI PodStatusMap `json:"observatoriumApi,omitempty"`
+
+	// ThanosQuery is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosQuery"
+	ThanosQuery PodStatusMap `json:"thanosQuery,omitempty"`
+
+	// ThanosQueryFrontend is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosQueryFrontend"
+	ThanosQueryFrontend PodStatusMap `json:"thanosQueryFrontend,omitempty"`
+
+	// ThanosReceiveController is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosReceiveController"
+	ThanosReceiveController PodStatusMap `json:"thanosReceiveController,omitempty"`
+
+	// ObservatoriumOperator is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ObservatoriumOperator"
+	ObservatoriumOperator PodStatusMap `json:"observatoriumOperator,omitempty"`
+
+	// RBACQueryProxy is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="RBACQueryProxy"
+	RBACQueryProxy PodStatusMap `json:"rbacQueryProxy,omitempty"`
+
+	// Alertmanager is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="Alertmanager"
+	Alertmanager PodStatusMap `json:"alertmanager,omitempty"`
+
+	// ThanosCompact is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosCompact"
+	ThanosCompact PodStatusMap `json:"thanosCompact,omitempty"`
+
+	// ThanosReceive is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosReceive"
+	ThanosReceive PodStatusMap `json:"thanosReceive,omitempty"`
+
+	// ThanosRule is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosRule"
+	ThanosRule PodStatusMap `json:"thanosRule,omitempty"`
+
+	// ThanosStoreMemcached is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosStoreMemcached"
+	ThanosStoreMemcached PodStatusMap `json:"thanosStoreMemcached,omitempty"`
+
+	// ThanosStoreShard is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="ThanosStoreShard"
+	ThanosStoreShard PodStatusMap `json:"thanosStoreShard,omitempty"`
+
+	// MultiClusterObservabilityAddon is a map to the pod status of the observatorium-api pod.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	// +operator-sdk:csv:customresourcedefinitions:type=status,xDescriptors="urn:alm:descriptor:com.tectonic.ui:podStatuses",displayName="MultiClusterObservabilityAddon"
+	MultiClusterObservabilityAddon PodStatusMap `json:"multiClusterObservabilityAddon,omitempty"`
+}
+
 // MultiClusterObservabilityStatus defines the observed state of MultiClusterObservability.
 type MultiClusterObservabilityStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// Components provides summary of all MultiClusterObservability pod status grouped
+	// per component.
+	//
+	// +optional
+	// +kubebuilder:validation:Optional
+	Components MultiClusterObservabilityComponentStatus `json:"components,omitempty"`
 
 	// Represents the status of each deployment
 	// +optional
-	Conditions []observabilityshared.Condition `json:"conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

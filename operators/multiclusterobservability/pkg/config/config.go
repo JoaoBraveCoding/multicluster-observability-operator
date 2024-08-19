@@ -21,6 +21,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/uuid"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -871,4 +872,19 @@ func GetMCOASupportedCRDFQDN(name string) string {
 	parts := strings.SplitN(name, ".", 2)
 
 	return fmt.Sprintf("%s.%s.%s", parts[0], version, parts[1])
+}
+
+func CommonLabels(instanceName string) map[string]string {
+	return map[string]string{
+		"app.kubernetes.io/name":       "multicluster-observability",
+		"app.kubernetes.io/instance":   instanceName,
+		"app.kubernetes.io/managed-by": "multicluster-observability-controller",
+		"app.kubernetes.io/created-by": "multicluster-observability-controller",
+	}
+}
+
+func ComponentLabels(component, instanceName string) labels.Set {
+	return labels.Merge(CommonLabels(instanceName), map[string]string{
+		"app.kubernetes.io/component": component,
+	})
 }

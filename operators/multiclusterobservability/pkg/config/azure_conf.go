@@ -33,21 +33,21 @@ func validateAzure(conf Config) error {
 }
 
 // IsValidAzureConf is used to validate azure configuration.
-func IsValidAzureConf(data []byte) (bool, error) {
+func IsValidAzureConf(data []byte) error {
 	var objectConfg ObjectStorgeConf
 	err := yaml.Unmarshal(data, &objectConfg)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if strings.ToLower(objectConfg.Type) != "azure" {
-		return false, errors.New("invalid type config, only azure type is supported")
+		return errors.New("invalid type config, only azure type is supported")
 	}
 
 	err = validateAzure(objectConfg.Config)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

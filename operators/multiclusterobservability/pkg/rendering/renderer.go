@@ -5,19 +5,20 @@
 package rendering
 
 import (
-	v1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"k8s.io/apimachinery/pkg/runtime"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
 	obv1beta2 "github.com/stolostron/multicluster-observability-operator/operators/multiclusterobservability/api/v1beta2"
+	"github.com/stolostron/multicluster-observability-operator/operators/multiclusterobservability/pkg/config"
 	mcoconfig "github.com/stolostron/multicluster-observability-operator/operators/multiclusterobservability/pkg/config"
 	"github.com/stolostron/multicluster-observability-operator/operators/multiclusterobservability/pkg/rendering/templates"
 	rendererutil "github.com/stolostron/multicluster-observability-operator/operators/pkg/rendering"
 	templatesutil "github.com/stolostron/multicluster-observability-operator/operators/pkg/rendering/templates"
 	"github.com/stolostron/multicluster-observability-operator/operators/pkg/util"
+	v1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	apilabels "k8s.io/apimachinery/pkg/labels"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("renderer")
@@ -111,7 +112,9 @@ func (r *MCORenderer) Render() ([]*unstructured.Unstructured, error) {
 	if err != nil {
 		return nil, err
 	}
-	mcoaResources, err := r.renderMCOATemplates(mcoaTemplates, namespace, labels)
+	mcoaLabels := config.ComponentLabels(r.cr.Name, config.MultiClusterObservabilityAddon)
+	mcoaLabels = apilabels.Merge(mcoaLabels, labels)
+	mcoaResources, err := r.renderMCOATemplates(mcoaTemplates, namespace, mcoaLabels)
 	if err != nil {
 		return nil, err
 	}

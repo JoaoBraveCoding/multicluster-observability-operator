@@ -6,13 +6,16 @@ package config
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func TestCheckObjStorageConf(t *testing.T) {
 	caseList := []struct {
-		conf     []byte
-		name     string
-		expected bool
+		conf        []byte
+		name        string
+		expectedErr bool
 	}{
 		{
 			conf: []byte(`type: s3
@@ -22,8 +25,8 @@ config:
   insecure: true
   access_key: access_key
   secret_key: secret_key`),
-			name:     "valid s3 conf",
-			expected: true,
+			name:        "valid s3 conf",
+			expectedErr: false,
 		},
 
 		{
@@ -34,8 +37,8 @@ config:
   container: container
   endpoint: endpoint
   max_retries: 0`),
-			name:     "valid azure conf",
-			expected: true,
+			name:        "valid azure conf",
+			expectedErr: false,
 		},
 
 		{
@@ -43,8 +46,8 @@ config:
 config:
   bucket: bucket
   service_account: service_account`),
-			name:     "valid gcs conf",
-			expected: true,
+			name:        "valid gcs conf",
+			expectedErr: false,
 		},
 
 		{
@@ -55,8 +58,8 @@ config:
   insecure: true
   access_key: access_key
   secret_key: secret_key`),
-			name:     "no bucket",
-			expected: false,
+			name:        "no bucket",
+			expectedErr: true,
 		},
 
 		{
@@ -67,8 +70,8 @@ config:
   insecure: true
   access_key: access_key
   secret_key: secret_key`),
-			name:     "no endpoint",
-			expected: false,
+			name:        "no endpoint",
+			expectedErr: true,
 		},
 
 		{
@@ -76,8 +79,8 @@ config:
 config:
   bucket: ""
   service_account: service_account`),
-			name:     "no bucket",
-			expected: false,
+			name:        "no bucket",
+			expectedErr: true,
 		},
 
 		{
@@ -85,8 +88,8 @@ config:
 config:
   bucket: bucket
   service_account: ""`),
-			name:     "no service_account",
-			expected: false,
+			name:        "no service_account",
+			expectedErr: true,
 		},
 
 		{
@@ -97,8 +100,8 @@ config:
   container: container
   endpoint: endpoint
   max_retries: 0`),
-			name:     "no storage_account",
-			expected: false,
+			name:        "no storage_account",
+			expectedErr: true,
 		},
 
 		{
@@ -109,8 +112,8 @@ config:
   container: container
   endpoint: endpoint
   max_retries: 0`),
-			name:     "no storage_account_key",
-			expected: false,
+			name:        "no storage_account_key",
+			expectedErr: true,
 		},
 
 		{
@@ -121,8 +124,8 @@ config:
   container: ""
   endpoint: endpoint
   max_retries: 0`),
-			name:     "no container",
-			expected: false,
+			name:        "no container",
+			expectedErr: true,
 		},
 
 		{
@@ -133,8 +136,8 @@ config:
   container: container
   endpoint: ""
   max_retries: 0`),
-			name:     "no endpoint",
-			expected: false,
+			name:        "no endpoint",
+			expectedErr: true,
 		},
 
 		{
@@ -145,8 +148,8 @@ config:
   insecure: true
   access_key: access_key
   secret_key: ""`),
-			name:     "invalid type",
-			expected: false,
+			name:        "invalid type",
+			expectedErr: true,
 		},
 
 		{
@@ -157,22 +160,29 @@ config:
   insecure: true
   access_key: access_key
   secret_key: secret_key`),
-			name:     "invalid conf format",
-			expected: false,
+			name:        "invalid conf format",
+			expectedErr: true,
 		},
 
 		{
-			conf:     []byte(``),
-			name:     "no conf",
-			expected: false,
+			conf:        []byte(``),
+			name:        "no conf",
+			expectedErr: true,
 		},
 	}
 
 	for _, c := range caseList {
 		t.Run(c.name, func(t *testing.T) {
-			output, _ := CheckObjStorageConf(c.conf)
-			if output != c.expected {
-				t.Errorf("case (%v) output (%v) is not the expected (%v)", c.name, output, c.expected)
+			secret := &corev1.Secret{
+				Data: map[string][]byte{
+					"foo": c.conf,
+				},
+			}
+			err := CheckObjStorageConf("foo", secret)
+			if c.expectedErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}

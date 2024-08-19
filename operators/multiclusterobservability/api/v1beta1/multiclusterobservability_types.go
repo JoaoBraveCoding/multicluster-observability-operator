@@ -113,7 +113,7 @@ type MultiClusterObservabilityStatus struct {
 
 	// Represents the status of each deployment
 	// +optional
-	Conditions []observabilityshared.Condition `json:"conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

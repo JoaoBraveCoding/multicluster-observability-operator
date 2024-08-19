@@ -4,6 +4,7 @@ go 1.22.0
 
 require (
 	github.com/IBM/controller-filtered-cache v0.3.6
+	github.com/ViaQ/logerr/v2 v2.1.0
 	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/cloudflare/cfssl v1.6.3
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32

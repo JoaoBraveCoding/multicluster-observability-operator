@@ -25,21 +25,21 @@ func validateGCS(conf Config) error {
 }
 
 // IsValidGCSConf is used to validate GCS configuration.
-func IsValidGCSConf(data []byte) (bool, error) {
+func IsValidGCSConf(data []byte) error {
 	var objectConfg ObjectStorgeConf
 	err := yaml.Unmarshal(data, &objectConfg)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if strings.ToLower(objectConfg.Type) != "gcs" {
-		return false, errors.New("invalid type config, only GCS type is supported")
+		return errors.New("invalid type config, only GCS type is supported")
 	}
 
 	err = validateGCS(objectConfg.Config)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

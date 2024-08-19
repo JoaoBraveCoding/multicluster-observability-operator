@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/stolostron/multicluster-observability-operator/operators/multiclusterobservability/pkg/status"
 	operatorconfig "github.com/stolostron/multicluster-observability-operator/operators/pkg/config"
 	addonv1alpha1 "open-cluster-management.io/api/addon/v1alpha1"
 
@@ -148,9 +149,6 @@ func (r *MultiClusterObservabilityReconciler) Reconcile(ctx context.Context, req
 	if config.GetMonitoringCRName() != instance.GetName() {
 		config.SetMonitoringCRName(instance.GetName())
 	}
-
-	// start to update mco status
-	StartStatusUpdate(r.Client, instance)
 
 	if _, ok := os.LookupEnv("UNIT_TEST"); !ok {
 		crdClient, err := operatorsutil.GetOrCreateCRDClient()
@@ -367,8 +365,16 @@ func (r *MultiClusterObservabilityReconciler) Reconcile(ctx context.Context, req
 		isLegacyResourceRemoved = true
 	}
 
-	// update status
-	requeueStatusUpdate <- struct{}{}
+	err = checkReadyStatus(ctx, r.Client, instance)
+	var degraded *status.DegradedError
+	switch {
+	case cerr.As(err, &degraded):
+		// degraded errors are handled by status.Refresh below
+	case err != nil:
+		return ctrl.Result{}, err
+	}
+
+	status.RefreshStatus(ctx, r.Client, req, time.Now(), degraded)
 
 	return ctrl.Result{}, nil
 }
@@ -398,9 +404,6 @@ func (r *MultiClusterObservabilityReconciler) initFinalization(
 			return false, err
 		}
 		log.Info("Finalizer removed from mco resource")
-
-		// stop update status routine
-		stopStatusUpdate <- struct{}{}
 
 		return true, nil
 	}

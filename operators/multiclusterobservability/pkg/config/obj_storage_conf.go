@@ -6,11 +6,13 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/prometheus/common/model"
 	"gopkg.in/yaml.v2"
+	corev1 "k8s.io/api/core/v1"
 )
 
 // Config is for s3/azure/gcs compatible configuration.
@@ -67,11 +69,16 @@ type TLSConfig struct {
 }
 
 // CheckObjStorageConf is used to check/valid the object storage configurations.
-func CheckObjStorageConf(data []byte) (bool, error) {
+func CheckObjStorageConf(objConfigKey string, secret *corev1.Secret) error {
+	data, ok := secret.Data[objConfigKey]
+	if !ok {
+		return fmt.Errorf("failed to found the object storage configuration key from secret %s", secret.Name)
+	}
+
 	var objectConfg ObjectStorgeConf
 	err := yaml.Unmarshal(data, &objectConfg)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	switch strings.ToLower(objectConfg.Type) {
@@ -85,6 +92,6 @@ func CheckObjStorageConf(data []byte) (bool, error) {
 		return IsValidAzureConf(data)
 
 	default:
-		return false, errors.New("invalid object storage type config")
+		return errors.New("invalid object storage type config")
 	}
 }

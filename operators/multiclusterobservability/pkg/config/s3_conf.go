@@ -25,21 +25,21 @@ func validateS3(conf Config) error {
 }
 
 // IsValidS3Conf is used to validate s3 configuration.
-func IsValidS3Conf(data []byte) (bool, error) {
+func IsValidS3Conf(data []byte) error {
 	var objectConfg ObjectStorgeConf
 	err := yaml.Unmarshal(data, &objectConfg)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	if strings.ToLower(objectConfg.Type) != "s3" {
-		return false, errors.New("invalid type config, only s3 type is supported")
+		return errors.New("invalid type config, only s3 type is supported")
 	}
 
 	err = validateS3(objectConfg.Config)
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	return nil
 }

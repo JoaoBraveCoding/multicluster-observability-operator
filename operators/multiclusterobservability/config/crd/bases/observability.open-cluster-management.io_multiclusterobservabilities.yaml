@@ -235,9 +235,15 @@ spec:
               conditions:
                 description: Represents the status of each deployment
                 items:
-                  description: Condition is from metav1.Condition. Cannot use it directly
-                    because the upgrade issue. Have to mark LastTransitionTime and
-                    Status as optional.
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource. --- This struct is intended for direct
+                    use as an array at the field path .status.conditions.  For example,
+                    \n type FooStatus struct{ // Represents the observations of a
+                    foo's current state. // Known .status.conditions.type are: \"Available\",
+                    \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
+                    // +listType=map // +listMapKey=type Conditions []metav1.Condition
+                    `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"
+                    protobuf:\"bytes,1,rep,name=conditions\"` \n // other fields }"
                   properties:
                     lastTransitionTime:
                       description: lastTransitionTime is the last time the condition
@@ -288,8 +294,10 @@ spec:
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
                   required:
+                  - lastTransitionTime
                   - message
                   - reason
+                  - status
                   - type
                   type: object
                 type: array
@@ -10508,12 +10516,135 @@ spec:
             description: MultiClusterObservabilityStatus defines the observed state
               of MultiClusterObservability.
             properties:
+              components:
+                description: Components provides summary of all MultiClusterObservability
+                  pod status grouped per component.
+                properties:
+                  alertmanager:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: Alertmanager is a map to the pod status of the observatorium-api
+                      pod.
+                    type: object
+                  grafana:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: Grafana is a map to the pod status of the grafana
+                      pod.
+                    type: object
+                  multiClusterObservabilityAddon:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: MultiClusterObservabilityAddon is a map to the pod
+                      status of the observatorium-api pod.
+                    type: object
+                  observatoriumApi:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ObservatoriumAPI is a map to the pod status of the
+                      observatorium-api pod.
+                    type: object
+                  observatoriumOperator:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ObservatoriumOperator is a map to the pod status
+                      of the observatorium-api pod.
+                    type: object
+                  rbacQueryProxy:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: RBACQueryProxy is a map to the pod status of the
+                      observatorium-api pod.
+                    type: object
+                  thanosCompact:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosCompact is a map to the pod status of the observatorium-api
+                      pod.
+                    type: object
+                  thanosQuery:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosQuery is a map to the pod status of the observatorium-api
+                      pod.
+                    type: object
+                  thanosQueryFrontend:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosQueryFrontend is a map to the pod status of
+                      the observatorium-api pod.
+                    type: object
+                  thanosReceive:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosReceive is a map to the pod status of the observatorium-api
+                      pod.
+                    type: object
+                  thanosReceiveController:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosReceiveController is a map to the pod status
+                      of the observatorium-api pod.
+                    type: object
+                  thanosRule:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosRule is a map to the pod status of the observatorium-api
+                      pod.
+                    type: object
+                  thanosStoreMemcached:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosStoreMemcached is a map to the pod status of
+                      the observatorium-api pod.
+                    type: object
+                  thanosStoreShard:
+                    additionalProperties:
+                      items:
+                        type: string
+                      type: array
+                    description: ThanosStoreShard is a map to the pod status of the
+                      observatorium-api pod.
+                    type: object
+                type: object
               conditions:
                 description: Represents the status of each deployment
                 items:
-                  description: Condition is from metav1.Condition. Cannot use it directly
-                    because the upgrade issue. Have to mark LastTransitionTime and
-                    Status as optional.
+                  description: "Condition contains details for one aspect of the current
+                    state of this API Resource. --- This struct is intended for direct
+                    use as an array at the field path .status.conditions.  For example,
+                    \n type FooStatus struct{ // Represents the observations of a
+                    foo's current state. // Known .status.conditions.type are: \"Available\",
+                    \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
+                    // +listType=map // +listMapKey=type Conditions []metav1.Condition
+                    `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"
+                    protobuf:\"bytes,1,rep,name=conditions\"` \n // other fields }"
                   properties:
                     lastTransitionTime:
                       description: lastTransitionTime is the last time the condition
@@ -10564,8 +10695,10 @@ spec:
                       pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
                       type: string
                   required:
+                  - lastTransitionTime
                   - message
                   - reason
+                  - status
                   - type
                   type: object
                 type: array
